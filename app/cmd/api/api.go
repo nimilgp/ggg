@@ -1,13 +1,16 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"net/http"
+	"nimilgp/app/docs"
 	"nimilgp/app/internal/store"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
+	httpSwagger "github.com/swaggo/http-swagger"
 )
 
 type application struct {
@@ -38,12 +41,17 @@ func (app *application) mount() http.Handler {
 	vr := chi.NewRouter()
 	vr.Get("/healthcheck", app.healthcheckHandler)
 
+	docURL := fmt.Sprintf("%s/swagger/doc.json", app.config.addr)
+	vr.Get("/swagger/*", httpSwagger.Handler(httpSwagger.URL(docURL)))
+
 	r.Mount("/v1", vr)
 
 	return r
 }
 
 func (app *application) run(mux http.Handler) error {
+	docs.SwaggerInfo.Version = "1.0"
+	docs.SwaggerInfo.BasePath = "/v1"
 	srv := http.Server{
 		Addr:         app.config.addr,
 		Handler:      mux,
