@@ -1,9 +1,10 @@
 package main
 
 import (
-	"log"
 	"nimilgp/app/internal/env"
 	"nimilgp/app/internal/store"
+
+	"go.uber.org/zap"
 )
 
 // @title Swagger Example API
@@ -37,6 +38,9 @@ func main() {
 		},
 	}
 
+	logger := zap.Must(zap.NewProduction()).Sugar()
+	defer logger.Sync()
+
 	// db, err := db.New(
 	// 	cfg.db.dsn,
 	// 	cfg.db.maxOpenConns,
@@ -53,8 +57,9 @@ func main() {
 	app := application{
 		config: cfg,
 		store:  store,
+		logger: logger,
 	}
 
 	mux := app.mount()
-	log.Fatal(app.run(mux))
+	logger.Fatal(app.run(mux))
 }
